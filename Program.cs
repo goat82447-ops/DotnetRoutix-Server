@@ -8,6 +8,10 @@ using DotnetRoutix.Server.Infrastructure.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
+// Render sets PORT env var dynamically — honour it
+var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://0.0.0.0:{port}");
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<MongoDbOptions>(builder.Configuration.GetSection(MongoDbOptions.SectionName));
@@ -17,6 +21,7 @@ builder.Services.Configure<OtpOptions>(builder.Configuration.GetSection(OtpOptio
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 builder.Services.AddCors(options =>
@@ -45,7 +50,9 @@ app.MapGet("/", () => Results.Ok(new
 {
     service = "DotnetRoutix Auth Service",
     version = "v1",
-    endpoints = "/api/auth/demo-user, /api/auth/login, /api/auth/verify-pin"
+    docs = "/swagger",
+    health = "/health",
+    note = "Open /swagger for the complete API list."
 }));
 
 app.MapGet("/health", () => Results.Ok(new
